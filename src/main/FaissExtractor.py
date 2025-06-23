@@ -18,6 +18,7 @@ def build_faiss_index(folder_path):
         loader_cls=PyPDFLoader,
         use_multithreading=True
     )
+    
     documents = loader.load()
     print(f"共加载 {len(documents)} 页PDF文档")
     
