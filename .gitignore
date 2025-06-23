@@ -40,13 +40,10 @@ output/
 logs/
 
 # 结果/中间文件
-*.json
-*.csv
+
 *.xlsx
 *.xls
-*.md
-result/
-background/
+
 
 # 临时/测试
 .DS_Store
@@ -59,3 +56,4 @@ Thumbs.db
 *.doc
 
 # 你可以根据实际需要增删
+faiss_index/
