@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+*.log
+*.tmp
+*.bak
+*.swp
+
+# VSCode
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# 环境/依赖
+.env
+.venv/
+venv/
+ENV/
+
+# 数据/模型/缓存
+*.db
+*.sqlite3
+*.h5
+*.pth
+*.pt
+*.ckpt
+*.npz
+*.npy
+*.pkl
+*.joblib
+models/
+cache/
+output/
+logs/
+
+# 结果/中间文件
+*.json
+*.csv
+*.xlsx
+*.xls
+*.md
+result/
+background/
+
+# 临时/测试
+.DS_Store
+Thumbs.db
+~$*
+
+# PDF/Word/附件
+*.pdf
+*.docx
+*.doc
+
+# 你可以根据实际需要增删
