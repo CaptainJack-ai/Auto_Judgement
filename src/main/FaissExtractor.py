@@ -8,6 +8,7 @@ import requests
 
 os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 
+
 # 加载PDF文件并构建faiss向量索引
 def build_faiss_index(folder_path):
 
