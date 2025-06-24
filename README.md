@@ -1,65 +1,100 @@
-import os
-import glob
-import requests
 
-API_KEY = os.getenv('DEEPSEEK_API_KEY', 'sk-be29bde69c8d441bae27a6df578b4c44')  # 请替换为你的API Key
+# 司法案例分析与判决书自动生成系统
 
-POLISH_PROMPT = """
-你是一名中国法院资深法官，请对以下判决书草稿进行润色和规范化，只做表达和格式优化，不得增加任何原文中未出现的事实内容。可以适当补充司法文书常用套话，使判决书更正式、更详细且更规范。
+## 功能概述
+本系统面向中文司法场景，集成了案件关键信息抽取、相似案例检索、法条分析、文档分类、判决书自动生成与润色等全流程，支持批量处理和结构化输出，助力法律科技与司法辅助。
 
-【判决书草稿】：
-{content}
+### 主要模型功能
+- **关键信息抽取**：利用大模型和NLP工具，从原始文书中自动提取案由、当事人、诉讼请求、争议焦点、证据、庭审过程等详细结构化信息。
+- **向量化与相似案例检索**：基于嵌入模型（如 text2vec-base-chinese）和 FAISS，支持高效的案例向量化与相似案例查找。
+- **法条提取与分析**：自动识别案件涉及的法律条文，统计高频法条，辅助判决推理。
+- **文档分类**：按法域（如合同法、婚姻法、公司法等）自动分类，提升检索与分析效率。
+- **判决书自动生成**：综合案件信息、相似案例、法条推理，调用大模型生成结构规范、内容详实的判决书草稿。
+- **判决书润色**：对初稿进行司法惯用语补充、格式规范化，确保输出更正式、合规。
 
-【输出要求】：
-- 只做润色和规范化，不得虚构或补充事实
-- 可补充司法惯用语和标准格式
-- 输出完整判决书文本
-"""
+## 运行流程
+1. **信息抽取**：
+   - 解析原始文书（PDF/Word），用大模型抽取案情摘要、起诉状、庭审笔录等关键信息，结构化存储。
+2. **向量化与检索**：
+   - 对案件文本分块、向量化，构建 FAISS 索引，实现高效相似案例检索。
+3. **相似案例匹配**：
+   - 检索与当前案件最相关的历史案例，提取裁判要点、案情摘要等。
+4. **法条分析**：
+   - 统计案件及相似案例涉及的高频法律条文，自动生成法条推理内容。
+5. **文档分类**：
+   - 按法域对案件进行自动分类，便于后续管理和分析。
+6. **判决书生成**：
+   - 组装所有结构化信息，设计专业 prompt，调用大模型生成规范判决书，内容包括案由、事实、争议焦点、证据、法律适用（含法条名称与条文内容）、判决结果等。
+7. **判决书润色**：
+   - 对草稿进行司法表达和格式优化，补充常用套话，确保合规性和可读性。
 
-def polish_judgement(text, api_key=API_KEY):
-    prompt = POLISH_PROMPT.format(content=text)
-    url = "https://api.deepseek.com/chat/completions"
-    headers = {"Authorization": f"Bearer {api_key}"}
-    data = {
-        "model": "deepseek-chat",
-        "messages": [
-            {"role": "system", "content": "你是中国法院法官，擅长撰写规范判决书。"},
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.2,
-        "max_tokens": 3000
-    }
-    try:
-        response = requests.post(url, json=data, headers=headers, timeout=120)
-        resp_json = response.json()
-        print("[DEBUG] API response:", resp_json)  # 新增debug输出
-        content = resp_json["choices"][0]["message"]["content"]
-        if content.strip().startswith('```'):
-            content = content.strip().lstrip('`').rstrip('`').strip()
-            content = content.split('```')[-1] if '```' in content else content
-        # 对比原文和润色结果
-        if content.strip() == text.strip():
-            print("[WARNING] 润色结果与原文无差异！")
-        return content
-    except Exception as e:
-        print(f"润色API调用出错: {str(e)}")
-        return text
+## 策略说明
+- **结构化优先**：所有信息抽取和生成均以结构化为目标，便于后续检索、分析和复用。
+- **事实严谨**：判决书生成和润色环节均要求不得虚构或补充原文未出现的事实，仅做表达和格式优化。
+- **法条内容完整**：判决书中法律适用部分明确要求写明法条名称、具体条文内容和适用理由，确保法律依据清晰。
+- **多源信息融合**：综合案件自身信息、相似案例、法条推理等多源数据，提升判决书的专业性和说服力。
+- **自动化与可扩展**：主流程自动串联各环节，支持批量处理和模块化扩展。
 
-def polish_all_judgements(input_dir, output_dir=None):
-    if output_dir is None:
-        output_dir = input_dir
-    files = glob.glob(os.path.join(input_dir, '*_judgement_draft.md'))
-    for file in files:
-        with open(file, 'r', encoding='utf-8') as f:
-            text = f.read()
-        print(f"正在润色: {os.path.basename(file)}")
-        polished = polish_judgement(text)
-        out_path = os.path.join(output_dir, os.path.basename(file).replace('_draft.md', '_polished.md'))
-        with open(out_path, 'w', encoding='utf-8') as f:
-            f.write(polished)
-        print(f"已保存润色后判决书: {out_path}")
+## 项目简介
+本项目为中文司法案例分析系统，集成了案件关键信息抽取、相似案例检索、法条分析、文档分类、判决书自动生成与润色等全流程，适用于法律科技、司法辅助等场景。
 
-if __name__ == "__main__":
-    # 默认处理 src/result 目录下所有 *_judgement_draft.md
-    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../result'))
-    polish_all_judgements(base_dir)
+## 主要功能
+1. **案件关键信息提取**：自动从原始文书中抽取案由、当事人、诉讼请求、争议焦点、证据等结构化信息。
+2. **向量化与相似案例检索**：基于 NLP 嵌入和 FAISS 检索，快速定位最相关历史案例。
+3. **法条提取与矩阵分析**：自动识别案件涉及的法律条文，统计高频法条，辅助判决推理。
+4. **文档分类**：按法域（如合同法、婚姻法、公司法等）自动分类管理。
+5. **判决书自动生成**：综合案件信息、相似案例、法条推理，调用大模型生成规范、详细的判决书草稿。
+6. **判决书润色**：对初稿进行司法惯用语补充、格式规范化，确保输出更正式、合规。
+
+## 目录结构
+```
+├── data/                # 原始案例文档，按法域分类
+├── src/
+│   ├── main/            # 主流程及各功能脚本
+│   │   ├── main.py      # 主流程入口，自动串联全流程
+│   │   ├── extract_baseinfo.py      # 关键信息抽取
+│   │   ├── FaissExtractor.py        # 向量化与检索
+│   │   ├── search_similar_cases.py  # 相似案例匹配
+│   │   ├── law_article_analysis.py  # 法条分析
+│   │   ├── law_doc_classifier.py    # 文档分类
+│   │   ├── generate_judgement.py    # 判决书生成
+│   │   ├── polish_judgement.py      # 判决书润色
+│   ├── result/          # 各步骤输出结果、判决书草稿
+│   ├── background/      # 背景数据、辅助信息
+├── requirements.txt     # 依赖包列表
+├── README.md            # 项目说明
+```
+
+## 快速开始
+1. **环境准备**
+   - 推荐使用 conda 虚拟环境：
+     ```bash
+     conda create -n auto_judgement python=3.9
+     conda activate auto_judgement
+     pip install -r requirements.txt
+     ```
+   - 配置大模型 API Key（如 DeepSeek）：
+     ```bash
+     export DEEPSEEK_API_KEY=你的APIKey
+     ```
+
+2. **运行主流程**
+   ```bash
+   python src/main/main.py
+   ```
+   系统将自动依次完成信息抽取、检索、分析、判决书生成与润色，所有结果输出至 `src/result/` 目录。
+
+## 主要依赖
+- langchain, langchain-community, langchain-huggingface
+- faiss-cpu
+- python-docx, pypdf
+- sentence-transformers, jieba, gensim
+- openai, requests, pandas, scikit-learn
+
+## 说明与注意事项
+- 判决书生成和润色均调用大模型，需保证 API Key 有效且配额充足。
+- 信息抽取和判决书生成 prompt 已针对中文司法场景深度优化，支持详细事实、争议焦点、法条内容等结构化输出。
+- 润色环节仅做表达和格式规范，不会虚构或补充原文未出现的事实。
+
+## 联系与贡献
+如有建议、需求或合作意向，欢迎联系项目维护者或提交 issue。
