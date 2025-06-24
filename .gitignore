@@ -56,4 +56,4 @@ Thumbs.db
 *.doc
 
 # 你可以根据实际需要增删
-faiss_index/
+faiss_index
