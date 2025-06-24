@@ -18,7 +18,9 @@ SCRIPTS = [
     # 6. 判决书自动生成
     os.path.join("..", "main", "generate_judgement.py"), 
     # 7. 判决书初稿导出为Markdown
-    os.path.join("..", "result", "judgement_draft.py")
+    os.path.join("..", "result", "judgement_draft.py"),
+    # 8. 判决书润色
+    os.path.abspath(os.path.join(os.path.dirname(__file__), '../main/polish_judgement.py'))
 ]
 
 def run_script(script_path):

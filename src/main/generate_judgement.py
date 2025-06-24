@@ -22,10 +22,11 @@ def call_llm_generate_judgement(case_info, similar_cases, law_text, model_api_ke
 1. 结构分明，分段输出：案由、当事人信息、诉讼请求、争议焦点、查明事实、举证责任分析、法律适用与裁判理由、判决结果。
 2. 每一部分内容详实、逻辑清晰，引用法律条文要准确，判决用语规范。
 3. 争议焦点要明确列举，举证责任要结合事实和证据分析。
-4. 查明事实部分请结合如下证据明细分条列举：\n{evidence_str}
-5. 法律适用部分要结合案件事实，逐条引用相关法条并说明理由。可参考如下法条推理：\n{law_reasoning}
-6. 可参考如下相似案例裁判要点：\n{similar_points}
-7. 判决结果要有法律依据，格式规范。
+4. 查明事实部分要**逐条、详细、具体**列举案件经过、证据内容、各方陈述、证据采信与否及理由，内容不少于300字。
+5. 举证责任分析部分要**详细说明每一项争议焦点的举证责任分配、各方举证情况、证据是否成立及理由**，内容不少于200字。
+6. 法律适用部分要结合案件事实，**逐条引用相关法条，并写明法条名称、具体条文内容和适用理由**。可参考如下法条推理：\n{law_reasoning}
+7. 可参考如下相似案例裁判要点：\n{similar_points}
+8. 判决结果要有法律依据，格式规范。
 
 【案件关键信息】：\n{json.dumps(case_info, ensure_ascii=False, indent=2)}\n
 【相关案例摘要】：\n{json.dumps(similar_cases, ensure_ascii=False, indent=2)}\n
@@ -107,7 +108,13 @@ def main():
         law_text = '\n'.join(law_names)
         judgement = call_llm_generate_judgement(case_info_with_party, sim_cases[:5], law_text)
         results[case_type] = judgement
-        print(f"[{case_type}] 判决书初稿生成完毕\n")
+        # 独立输出和保存每个案例的判决书
+        print(f"\n===== {case_type} 判决书初稿 =====\n")
+        print(judgement)
+        single_output_path = os.path.join(result_dir, f'{case_type}_judgement_draft.md')
+        with open(single_output_path, "w", encoding="utf-8") as f:
+            f.write(judgement)
+        print(f"[{case_type}] 判决书初稿已保存为 {single_output_path}\n")
     # 结果保存到src/result/judgement_draft.json
     output_path = os.path.join(result_dir, 'judgement_draft.json')
     with open(output_path, "w", encoding="utf-8") as f:
