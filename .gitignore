@@ -51,9 +51,10 @@ Thumbs.db
 ~$*
 
 # PDF/Word/附件
-*.pdf
+
 *.docx
 *.doc
 
 # 你可以根据实际需要增删
 faiss_index
+data
